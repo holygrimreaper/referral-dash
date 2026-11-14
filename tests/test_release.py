@@ -407,6 +407,7 @@ class SettingsTests(Isolated):
         old = {**DEFAULTS, "mission": "Old Mission", "drive_folder": "1xGTi7lEfAdrMMTrh", "drive_folder_name": "Dashboards",
                "tableau_sso_url": "", "timezones": {"default": "EST", "hawaii": "HST"}, "lookback_days": 60}
         old.pop("keep_reports")
+        old.pop("timezone_auto")  # Files from then had no such setting.
         settings.settings_path().write_text(json.dumps(old))
         loaded = settings.load_settings()
         self.assertEqual((loaded["mission"], loaded["lookback_days"], loaded["keep_reports"]), ("Old Mission", 60, 8))
@@ -416,14 +417,14 @@ class SettingsTests(Isolated):
 
     def test_time_zone_guess_comes_from_this_computer(self):
         from referral_dash import settings
-        # Windows names the zone exactly, anywhere in the world.
+        # Windows and Macs name the zone exactly, anywhere in the world.
         for reported, expected in (("America/Lima", "America/Lima"), ("Asia/Manila", "Asia/Manila"), ("europe/london", "Europe/London")):
-            with self.subTest(reported=reported), patch.object(settings, "_windows_zone", return_value=reported):
+            with self.subTest(reported=reported), patch.object(settings, "_system_zone", return_value=reported):
                 self.assertEqual(settings.suggested_timezone(), expected)
         # Without it, the clock's offset still finds the US zones.
         for offset, daylight, expected in ((18000, 1, "America/New_York"), (21600, 1, "America/Chicago"), (25200, 1, "America/Denver"),
                                            (25200, 0, "America/Phoenix"), (36000, 0, "Pacific/Honolulu"), (-3600, 1, "UTC")):
-            with self.subTest(offset=offset, daylight=daylight), patch.object(settings, "_windows_zone", return_value=None), \
+            with self.subTest(offset=offset, daylight=daylight), patch.object(settings, "_system_zone", return_value=None), \
                     patch.object(settings.time, "timezone", offset), patch.object(settings.time, "daylight", daylight):
                 self.assertEqual(settings.suggested_timezone(), expected)
 

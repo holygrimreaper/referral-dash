@@ -97,10 +97,15 @@ def _mac_zone(localtime="/etc/localtime"):
     return target.split("zoneinfo/", 1)[1] if "zoneinfo/" in target else None
 
 
+def _system_zone():
+    """The zone this computer reports, or None."""
+    return _windows_zone() if os.name == "nt" else _mac_zone()
+
+
 def suggested_timezone():
     """This computer's time zone, anywhere in the world."""
     try:
-        found = zone_name((_windows_zone() if os.name == "nt" else _mac_zone()) or "")
+        found = zone_name(_system_zone() or "")
         if found != "UTC" or not time.timezone:
             return found
     except ValueError:
