@@ -6,7 +6,7 @@ referrals, and makes area, district, zone and mission dashboards plus District
 Summaries. Everything runs on this computer. It never asks for or saves your
 password, and dashboards show areas and counts, never anyone's name.
 
-FIRST TIME (about 2 minutes)
+FIRST TIME ON WINDOWS (about 2 minutes)
 1. Right-click the ZIP > Extract All. Open the new folder.
 2. Double-click "Referral Dash.exe". The app opens in its own window.
    (Windows may ask you to confirm the first time: More info > Run anyway.)
@@ -15,6 +15,22 @@ FIRST TIME (about 2 minutes)
    on by itself. The first run finds your mission in Tableau, and the time
    zone comes from this computer. Both can be changed in Settings > Mission.
    Want a preview first? Click "Try sample data".
+
+FIRST TIME ON A MAC (about 3 minutes)
+Use the Mac ZIP that matches your Mac: "Apple-Silicon" for an M1 or newer
+(Apple menu > About This Mac says "Chip: Apple M..."), "Intel" for older Macs.
+Google Chrome or Microsoft Edge must be installed; Safari alone can't run it.
+1. Double-click the ZIP to unzip it. Drag "Referral Dash.app" into
+   Applications.
+2. Double-click Referral Dash. The Mac will say it can't check the app for
+   malicious software, because the app isn't sold through Apple. Click Done.
+3. Open System Settings > Privacy & Security, scroll down, and click
+   "Open Anyway" next to Referral Dash. Enter your Mac password if asked.
+   You only do this once.
+4. Then follow step 3 above: click Run now and sign in to Tableau.
+If the Mac says the app "is damaged", open Terminal and paste this line, then
+press Return and open the app again:
+   xattr -dr com.apple.quarantine "/Applications/Referral Dash.app"
 
 EVERY WEEK
 Open Referral Dash and click Run now. Wait for "Reports are ready", then
@@ -39,7 +55,7 @@ date. A date range stays set until you change it back.
 WHERE REPORTS GO
 Each run makes a folder named for its dates, like
 "Referral Reports - Oct 7 to Nov 6, 2026".
-- Reports are saved in Documents\Referral Dash reports. Click "Change" on the
+- Reports are saved in Documents > Referral Dash reports. Click "Change" on the
   main screen to save them somewhere else. To share them, pick a folder that
   Google Drive for desktop, OneDrive or a shared drive already syncs.
 - Or click "Connect Google Drive", sign in, and choose a folder in your Drive
@@ -61,7 +77,8 @@ IF SOMETHING GOES WRONG
 - Signing in: each run opens a browser window at Tableau. Sign in there
   (including any authenticator step) within 10 minutes. If the browser still
   remembers you, it skips straight ahead.
-- No Chrome or Edge window can open: install or update Microsoft Edge.
+- No Chrome or Edge window can open: install or update Microsoft Edge (or
+  Google Chrome on a Mac).
 - Already downloaded a CSV yourself? Click "Use a CSV I downloaded". To get
   the change arrows, choose a date range in Settings > Advanced, and make sure
   your CSV also covers the dates you compare with.

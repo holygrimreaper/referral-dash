@@ -16,7 +16,10 @@ def check_imports():
     from selenium import webdriver
     from selenium.webdriver.chrome.webdriver import WebDriver as Chrome  # noqa: F401
     from selenium.webdriver.edge.webdriver import WebDriver as Edge  # noqa: F401
-    import keyring.backends.Windows  # noqa: F401
+    if sys.platform == "darwin":
+        import keyring.backends.macOS  # noqa: F401
+    else:
+        import keyring.backends.Windows  # noqa: F401
     import referral_dash.tableau.download  # noqa: F401
     import referral_dash.app  # noqa: F401
     import referral_dash.drive  # noqa: F401

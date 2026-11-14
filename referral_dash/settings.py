@@ -8,7 +8,7 @@ from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import available_timezones
 
-VERSION = "2.6.1"
+VERSION = "2.7.0"
 APP_NAME = "Referral Dash"
 # Older settings used these short names; they are stored as the zones they always meant.
 LEGACY_ZONES = {"UTC": "UTC", "EST": "America/New_York", "CST": "America/Chicago", "MST": "America/Denver",
@@ -58,12 +58,18 @@ def app_directory():
 
 
 def install_directory():
-    """The folder holding Referral Dash.exe (or the repository when run from source)."""
+    """The folder holding Referral Dash.exe, or the app's inner folder on a Mac (the repository from source)."""
     return Path(sys.executable).resolve().parent if getattr(sys, "frozen", False) else Path(__file__).resolve().parent.parent
 
 
 def data_directory():
-    base = os.getenv("REFERRAL_DASH_HOME") or os.path.join(os.getenv("LOCALAPPDATA") or Path.home(), APP_NAME)
+    """Settings, downloads and browser profiles: %LOCALAPPDATA% on Windows, Application Support on a Mac."""
+    base = os.getenv("REFERRAL_DASH_HOME")
+    if not base:
+        if sys.platform == "darwin":
+            base = Path.home() / "Library" / "Application Support" / APP_NAME
+        else:
+            base = os.path.join(os.getenv("LOCALAPPDATA") or Path.home(), APP_NAME)
     path = Path(base)
     path.mkdir(parents=True, exist_ok=True)
     return path
@@ -85,10 +91,16 @@ def _windows_zone():
         return None
 
 
+def _mac_zone(localtime="/etc/localtime"):
+    """A Mac's zone: /etc/localtime links to .../zoneinfo/America/New_York, for example."""
+    target = os.path.realpath(localtime)
+    return target.split("zoneinfo/", 1)[1] if "zoneinfo/" in target else None
+
+
 def suggested_timezone():
     """This computer's time zone, anywhere in the world."""
     try:
-        found = zone_name(_windows_zone() or "")
+        found = zone_name((_windows_zone() if os.name == "nt" else _mac_zone()) or "")
         if found != "UTC" or not time.timezone:
             return found
     except ValueError:

@@ -245,6 +245,24 @@ class ReportTests(Isolated):
         self.assertTrue(all(set(entry) == {"date", "area"} for entry in seen))
 
 
+class MacTests(unittest.TestCase):
+    """The Mac-only choices, checked on any computer."""
+
+    def test_a_mac_keeps_its_data_in_application_support(self):
+        from referral_dash import settings
+        with tempfile.TemporaryDirectory() as home, patch.dict(os.environ, {}, clear=False), \
+                patch.object(settings.sys, "platform", "darwin"), patch.object(settings.Path, "home", lambda: Path(home)):
+            os.environ.pop("REFERRAL_DASH_HOME", None)
+            self.assertEqual(settings.data_directory(), Path(home) / "Library" / "Application Support" / "Referral Dash")
+
+    def test_a_mac_reads_its_time_zone_from_localtime(self):
+        from referral_dash import settings
+        with patch.object(settings.os.path, "realpath", lambda p: "/var/db/timezone/zoneinfo/America/Denver"):
+            self.assertEqual(settings._mac_zone(), "America/Denver")
+        with patch.object(settings.os.path, "realpath", lambda p: "/etc/localtime"):
+            self.assertIsNone(settings._mac_zone())
+
+
 class ComparisonTests(Isolated):
     def test_first_ever_run_shows_change_from_the_week_before(self):
         """Regression: a mission's first run used to say "No prior data" on every row."""
@@ -952,6 +970,16 @@ class AppTests(Isolated):
         except Exception as error:
             with error:
                 return error.code, json.loads(error.read())
+
+    def test_a_mac_opens_folders_in_finder_and_windows_in_chrome_or_edge(self):
+        folder = Path(self.output.name)
+        with patch.object(self.app.os, "name", "posix"), patch.object(self.app.subprocess, "Popen") as popen:
+            self.app.Controller().open_target(str(folder))
+        popen.assert_called_once_with(["open", str(folder)])
+        with patch.object(self.app.sys, "platform", "darwin"), patch.object(self.app.Path, "exists", lambda p: "Chrome" in str(p)):
+            self.assertIn("Google Chrome.app/Contents/MacOS/Google Chrome", self.app._browser().replace("\\", "/"))
+        with patch.object(self.app.sys, "platform", "darwin"), patch.object(self.app.Path, "exists", lambda p: False):
+            self.assertIsNone(self.app._browser())  # Then the default browser opens the page instead.
 
     def test_requires_session_token(self):
         self.assertEqual(self.call("/api/state", token="wrong")[0], 403)

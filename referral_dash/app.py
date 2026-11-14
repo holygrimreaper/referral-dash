@@ -11,6 +11,7 @@ import queue
 import secrets
 import shutil
 import subprocess
+import sys
 import threading
 import time
 import traceback
@@ -322,7 +323,10 @@ class Controller:
         path = Path(target)
         # Only folders: the window never needs to launch a file.
         if path.is_dir():
-            os.startfile(str(path))
+            if os.name == "nt":
+                os.startfile(str(path))
+            else:
+                subprocess.Popen(["open", str(path)])  # Finder on a Mac.
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -407,6 +411,12 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def _browser():
+    if sys.platform == "darwin":
+        # Safari has no app-window mode, so a Mac uses Chrome or Edge when either is installed.
+        candidates = [str(folder / app) for folder in (Path("/Applications"), Path.home() / "Applications")
+                      for app in ("Google Chrome.app/Contents/MacOS/Google Chrome",
+                                  "Microsoft Edge.app/Contents/MacOS/Microsoft Edge")]
+        return next((c for c in candidates if Path(c).exists()), None)
     candidates = [shutil.which("msedge"),
                   os.path.expandvars(r"%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"),
                   os.path.expandvars(r"%ProgramFiles%\Microsoft\Edge\Application\msedge.exe"),

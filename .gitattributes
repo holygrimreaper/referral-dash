@@ -1,0 +1,3 @@
+# Mac and GitHub build files must keep Unix line endings.
+*.sh text eol=lf
+*.yml text eol=lf

@@ -1,6 +1,6 @@
 # Referral Dash
 
-A Windows app any mission can use to turn its Tableau referral data into
+A Windows and Mac app any mission can use to turn its Tableau referral data into
 dashboard pictures and District Summaries. It is the stand-alone sibling of the
 Referral Care Data Hub, and shares that app's Tableau automation, look, and
 district summary design.
@@ -92,3 +92,18 @@ Set `REFERRAL_DASH_HOME` to use a scratch settings folder, and
 This runs the tests, builds `Referral Dash.exe` with PyInstaller, has the
 packaged exe render the sample (`--self-test`), and zips
 `dist\Referral Dash <version>`.
+
+The Mac versions are built by GitHub on its Macs: pushing a version tag
+(`git tag v2.7.0` then `git push origin v2.7.0`) runs `.github/workflows/mac.yml`,
+which builds `Referral-Dash-<version>-Mac-Apple-Silicon.zip` and
+`Referral-Dash-<version>-Mac-Intel.zip` with `build.sh` (tests, the packaged
+self-test, then the ZIP) and attaches both to a draft release for that tag.
+Add the Windows ZIP to the same draft, then publish it. To include Google
+Drive in the Mac builds, save the contents of `drive_oauth_client.json` as the
+repository secret `DRIVE_OAUTH_CLIENT`. On a Mac, `bash build.sh` builds the
+same ZIP locally.
+
+Windows-only and Mac-only code is limited to a few spots, each choosing by
+platform: the data folder (`%LOCALAPPDATA%` or `~/Library/Application Support`),
+the app window (Edge or Chrome), opening folders, the time zone, the serif font,
+and the saved Drive connection (Credential Manager or the Keychain).

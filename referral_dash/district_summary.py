@@ -1,5 +1,6 @@
 """Area-by-area district summaries in the Referral Care Data Hub style."""
 import os
+import sys
 from datetime import date
 from functools import lru_cache
 from pathlib import Path
@@ -52,8 +53,11 @@ def key(record):
 @lru_cache(maxsize=None)
 def _font(size, bold=False, serif=False):
     if serif:
-        # Georgia ships with every Windows install; fall back to the bundled sans.
-        system = Path(os.environ.get("WINDIR", r"C:\Windows")) / "Fonts" / ("georgiab.ttf" if bold else "georgia.ttf")
+        # Georgia ships with every Windows and Mac install; fall back to the bundled sans.
+        if sys.platform == "darwin":
+            system = Path("/System/Library/Fonts/Supplemental") / ("Georgia Bold.ttf" if bold else "Georgia.ttf")
+        else:
+            system = Path(os.environ.get("WINDIR", r"C:\Windows")) / "Fonts" / ("georgiab.ttf" if bold else "georgia.ttf")
         if system.exists():
             return ImageFont.truetype(str(system), size)
     bundled = app_directory() / "fonts" / ("Nunito-Bold.ttf" if bold else "Nunito-Regular.ttf")
