@@ -4,7 +4,9 @@ name: Mac build
 
 on:
   push:
+    # Version tags make a draft release; pushes to main just check the Mac build still works.
     tags: ["v*"]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -19,9 +21,9 @@ jobs:
         runner: [macos-15, macos-15-intel]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
 
@@ -33,8 +35,23 @@ jobs:
         run: |
           if [ -n "$DRIVE_OAUTH_CLIENT" ]; then printf '%s' "$DRIVE_OAUTH_CLIENT" > drive_oauth_client.json; fi
 
+      # On failure, the end of the output is posted as annotations, which the run page shows
+      # to anyone (the full log needs a GitHub sign-in).
       - name: Build and self-test
-        run: PYTHON=python bash build.sh
+        run: |
+          set -o pipefail
+          if PYTHON=python bash build.sh 2>&1 | tee build.log; then exit 0; fi
+          python - <<'EOF'
+          text = open("build.log", encoding="utf-8", errors="replace").read()
+          # Test failures start at the first ===== line; otherwise show the last part.
+          start = text.find("=" * 70)
+          text = text[start:] if start >= 0 else text[-6000:]
+          chunks = [text[i:i + 3500] for i in range(0, len(text), 3500)][:9]
+          for n, chunk in enumerate(chunks, 1):
+              escaped = chunk.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+              print(f"::error title=Build output {n}/{len(chunks)}::{escaped}")
+          EOF
+          exit 1
 
       - uses: actions/upload-artifact@v4
         with:
